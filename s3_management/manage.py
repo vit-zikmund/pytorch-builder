@@ -192,7 +192,7 @@ class S3Index:
         # removes the GPU specifier from the package name as well as
         # unnecessary things like the file extension, architecture name, etc.
         return sub(
-            r"%2B.*",
+            r"\+.*",
             "",
             "-".join(path.basename(obj).split("-")[:2])
         )
@@ -226,7 +226,7 @@ class S3Index:
                 # strip root prefix
                 sanitized_obj = obj.replace(self.prefix, "", 1).lstrip("/")
                 sanitized_obj = f"../{sanitized_obj}"
-            out.append(f'<a href="{sanitized_obj}">{sanitized_obj}</a><br/>')
+            out.append(f'<a href="{sanitized_obj.replace("+","%2B")}">{sanitized_obj}</a><br/>')
         return "\n".join(sorted(out))
 
     def to_simple_package_html(
@@ -243,7 +243,7 @@ class S3Index:
         out.append('  <body>')
         out.append('    <h1>Links for {}</h1>'.format(package_name.lower().replace("_","-")))
         for obj in sorted(self.gen_file_list(subdir, package_name)):
-            out.append(f'    <a href="/{obj}">{path.basename(obj).replace("%2B","+")}</a><br/>')
+            out.append(f'    <a href="/{obj.replace("+","%2B")}">{path.basename(obj)}</a><br/>')
         # Adding html footer
         out.append('  </body>')
         out.append('</html>')
@@ -336,8 +336,7 @@ class S3Index:
                 for pattern in ACCEPTED_SUBDIR_PATTERNS
             ]) and obj.key.endswith(ACCEPTED_FILE_EXTENSIONS)
             if is_acceptable:
-                sanitized_key = obj.key.replace("+", "%2B")
-                objects.append(sanitized_key)
+                objects.append(obj.key)
         return cls(objects, prefix)
 
 def create_parser() -> argparse.ArgumentParser:
